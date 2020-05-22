@@ -1,18 +1,18 @@
+const express = require('express');
 const mongoose = require('mongoose');
 const config = require('config');
-const mongoURI = config.get('mongoURI');
 
 const connectDB = async () => {
   try {
-    await mongoose.connect(mongoURI, {
+    await mongoose.connect(config.get('mongoURI'), {
       useNewUrlParser: true,
-      useCreateIndex: true,
       useUnifiedTopology: true,
+      useCreateIndex: true,
       useFindAndModify: false,
     });
-    console.log(`BASE DE DATOS CONNECTADA!`);
-  } catch (error) {
-    console.log(`ERROR CONEXION BASE DE DATOS:\n${error}`);
+    console.log(`CONEXION A DB EXITOSA!`);
+  } catch (err) {
+    console.log(`ERROR CONEXION DB:\n${err}`);
     process.exit(1);
   }
 };

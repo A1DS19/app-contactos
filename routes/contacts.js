@@ -1,41 +1,45 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
-const Contact = require('../models/Contact');
 const auth = require('../middleware/auth');
 const { check, validationResult } = require('express-validator');
+const Contact = require('../models/Contact');
+const User = require('../models/User');
 
-//@route POST /api/contacts
-//@desc regresa todos lo contactos de el usuario
-//@acceso privado
+//@ROUTE GET api/contacts
+//@DESC Get all users contacts
+//@access Private
 router.get('/', auth, async (req, res) => {
   try {
     const contacts = await Contact.find({ user: req.user.id }).sort({
       date: -1,
     });
-    res.json({ contacts });
+    res.send(contacts);
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     res.status(500).send('Error del servidor');
   }
 });
 
-//@route POST /api/contacts
-//@desc agrega contacto nuevo
-//@acceso privado
+//@ROUTE POST api/contacts
+//@DESC Post contact
+//@access Private
 router.post(
   '/',
-  [auth, check('name', 'Porfavor ingrese nombre del contacto').not().isEmpty()],
+  [
+    auth,
+    check('name', 'Porfavor ingrese un nombre para el contacto')
+      .not()
+      .isEmpty(),
+  ],
   async (req, res) => {
-    const { name, email, phone, type } = req.body;
     const errors = validationResult(req);
-
     if (!errors.isEmpty()) {
-      return res.status(400).json({ msg: errors.array() });
+      return res.status(400).json({ errors: errors.array() });
     }
-
     try {
-      const newContact = new Contact({
+      const { name, email, phone, type } = req.body;
+
+      const contact = new Contact({
         user: req.user.id,
         name,
         email,
@@ -43,20 +47,23 @@ router.post(
         type,
       });
 
-      const contact = await newContact.save();
-      res.json({ contact });
+      const newContact = await contact.save();
+
+      res.json(newContact);
     } catch (err) {
-      console.error(err);
+      console.error(err.message);
       res.status(500).send('Error del servidor');
     }
   }
 );
 
-//@route POST /api/contacts/id
-//@desc modifica contacto nuevo por id
-//@acceso privado
+//@ROUTE PUT api/contacts/:id
+//@DESC UPDATE  contact
+//@access Private
 router.put('/:id', auth, async (req, res) => {
   const { name, email, phone, type } = req.body;
+
+  //Objeto con los campos que se submitan
   const contactFields = {};
   if (name) contactFields.name = name;
   if (email) contactFields.email = email;
@@ -65,49 +72,46 @@ router.put('/:id', auth, async (req, res) => {
 
   try {
     let contact = await Contact.findById(req.params.id);
-    if (!contact) return res.status(404).json({ msg: 'Contacto incorrecto' });
+    if (!contact) return res.status(404).json({ msg: 'Contacto no existe' });
 
-    //Revisar si id de user ligado a contacto es igual a user haciendo el request
-    if (contact.user.toString() !== req.user.id)
-      return res
-        .status(401)
-        .json({ msg: 'Credenciales invalidas para realizar modificacion' });
+    //Seguridad a la hora de hacer cambios a contactos
+    if (contact.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Acceso denegado' });
+    }
 
-    contact = await Contact.findOneAndUpdate(
+    contact = await Contact.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: contactFields,
-      },
+      { $set: contactFields },
       { new: true }
     );
 
-    res.json({ contact });
+    res.json(contact);
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     res.status(500).send('Error del servidor');
   }
 });
 
-//@route POST /api/contacts/id
-//@desc borra contacto nuevo por id
-//@acceso privado
+//@ROUTE DELETE api/contacts/:id
+//@DESC Delete contact
+//@access Private
 router.delete('/:id', auth, async (req, res) => {
   try {
     let contact = await Contact.findById(req.params.id);
-    if (!contact) return res.status(404).json({ msg: 'Contacto incorrecto' });
+    if (!contact) return res.status(404).json({ msg: 'Contacto no existe' });
 
-    //Revisar si id de user ligado a contacto es igual a user haciendo el request
-    if (contact.user.toString() !== req.user.id)
-      return res
-        .status(401)
-        .json({ msg: 'Credenciales invalidas para realizar modificacion' });
+    //Seguridad a la hora de hacer cambios a contactos
+    if (contact.user.toString() !== req.user.id) {
+      return res.status(401).json({ msg: 'Acceso denegado' });
+    }
 
-    await Contact.findOneAndDelete(req.params.id);
+    await Contact.findByIdAndRemove(req.params.id);
 
-    res.json({ msg: 'Contacto borrado' });
+    res.json({ msg: 'Contacto eliminado' });
   } catch (err) {
-    console.error(err);
+    console.error(err.message);
     res.status(500).send('Error del servidor');
   }
 });
+
 module.exports = router;

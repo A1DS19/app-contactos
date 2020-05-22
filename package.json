@@ -1,32 +1,27 @@
 {
-  "name": "app-contactos",
+  "name": "2.0_app-contactos",
   "version": "1.0.0",
-  "description": "APP de contactos",
+  "description": "App de contactos con react y node.js",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "server": "nodemon server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/A1DS19/app-contactos.git"
+    "server": "nodemon server.js",
+    "client": "npm start --prefix client",
+    "clientinstall": "npm install --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "author": "Jose Padilla",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/A1DS19/app-contactos/issues"
-  },
-  "homepage": "https://github.com/A1DS19/app-contactos#readme",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "config": "^3.3.1",
     "express": "^4.17.1",
-    "express-validator": "^6.4.0",
+    "express-validator": "^6.5.0",
     "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.9.10"
+    "mongoose": "^5.9.15"
   },
   "devDependencies": {
-    "concurrently": "^5.1.0",
-    "nodemon": "^2.0.3"
+    "concurrently": "^5.2.0",
+    "nodemon": "^2.0.4"
   }
 }

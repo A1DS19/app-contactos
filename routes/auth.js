@@ -7,68 +7,65 @@ const config = require('config');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 
-//@route GET /api/auth
-//@desc GET usuario loggeado
-//@acceso privado
+//@ROUTE GET api/auth
+//@DESC get logged user
+//@access Private
 router.get('/', auth, async (req, res) => {
   try {
-    //Buscar user por el id del token menos la contrasena
     const user = await User.findById(req.user.id).select('-password');
-    res.json({ user });
+    res.json(user);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Error del servidor');
   }
 });
 
-//@route POST /api/auth
-//@desc Loggea nuevo usuario con token
-//@acceso publico
+//@ROUTE post api/auth
+//@DESC post  user & get token
+//@access Public
 router.post(
   '/',
   [
-    check('email', 'Credenciales invalidas').isEmail(),
-    check('password', 'Credenciales invalidas').notEmpty(),
+    check('email', 'Porfavor incluya un email valido').isEmail(),
+    check('password', 'Porfavor incluya una contrasena').exists(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    const { email, password } = req.body;
-
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errores: errors.array() });
+      return res.status(400).json({ errors: errors.array() });
     }
 
     try {
+      const { email, password } = req.body;
       let user = await User.findOne({ email });
       if (!user) {
         return res.status(400).json({ msg: 'Credenciales invalidas' });
       }
-      const passMatch = await bcrypt.compare(password, user.password);
 
-      if (!passMatch) {
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
         return res.status(400).json({ msg: 'Credenciales invalidas' });
       }
 
       const payload = {
-        user: {
-          id: user.id,
-        },
+        user: { id: user.id },
       };
 
       jwt.sign(
         payload,
-        config.get('secretJWT'),
-        { expiresIn: 360000 },
+        config.get('jwtSecret'),
+        {
+          expiresIn: 360000,
+        },
         (err, token) => {
           if (err) throw err;
           res.json({ token });
         }
       );
-    } catch (error) {
-      console.error(error.message);
+    } catch (err) {
+      console.error(err.message);
       res.status(500).send('Error del servidor');
     }
   }
 );
-
 module.exports = router;

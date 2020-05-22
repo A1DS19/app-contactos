@@ -2,20 +2,20 @@ const jwt = require('jsonwebtoken');
 const config = require('config');
 
 module.exports = function (req, res, next) {
-  //Recibe token
+  //GET token del header
   const token = req.header('x-auth-token');
 
-  //Si token no existe
+  //Ver si token existe
   if (!token) {
-    return res.status(401).json({ msg: 'Token no existe, acceso invalido' });
+    return res.status(401).json({ msg: 'Acceso denegado' });
   }
 
-  //Si es que existe verifica el token
   try {
-    const decoded = jwt.verify(token, config.get('secretJWT'));
+    const decoded = jwt.verify(token, config.get('jwtSecret'));
     req.user = decoded.user;
     next();
   } catch (err) {
-    res.status(401).json({ msg: 'Token no es valido' });
+    console.error(err.message);
+    res.status(500).send('Error del servidor');
   }
 };
