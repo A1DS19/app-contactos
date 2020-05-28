@@ -3,21 +3,24 @@ import { Navbar } from './Components/layout/Navbar';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Home } from './Components/Pages/Home';
 import { About } from './Components/Pages/About';
+import ContactState from './context/contact/ContactState';
 import './App.css';
 
 const App = () => {
   return (
-    <Router>
-      <Fragment>
-        <Navbar />
-        <div className='container'>
-          <Switch>
-            <Route exact path='/' component={Home} />
-            <Route exact path='/about' component={About} />
-          </Switch>
-        </div>
-      </Fragment>
-    </Router>
+    <ContactState>
+      <Router>
+        <Fragment>
+          <Navbar />
+          <div className='container'>
+            <Switch>
+              <Route exact path='/' component={Home} />
+              <Route exact path='/about' component={About} />
+            </Switch>
+          </div>
+        </Fragment>
+      </Router>
+    </ContactState>
   );
 };
 
