@@ -1,0 +1,4 @@
+{
+  "mongoURI": "mongodb+srv://JP-ADMIN:JP-ADMIN@app-contactos-ydpaz.mongodb.net/test?retryWrites=true&w=majority",
+  "secretJWT": "2hFTNm7mWlduR3NFRdOf"
+}
